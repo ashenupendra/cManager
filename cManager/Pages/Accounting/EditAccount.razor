@@ -1,0 +1,106 @@
+﻿@page "/Accounting/Edit"
+
+@using cManager.Data
+@using cManager.Shared
+@using cManager.Shared.Accounting
+@inject AccountService AccountService
+
+
+@if (Account != null)
+{
+    <h4>Edit Account: @Account.AccountName</h4>
+    <div class="col-6">
+        <EditForm Model=@Account OnValidSubmit=@Save class="form-horizontal">
+            <DataAnnotationsValidator />
+            <div class="form-group">
+                <label class="control-label col-sm-4" for="AccountName">Account Name</label>
+                <div class="col-sm-8">
+                    <InputText @bind-Value=Account.AccountName class="form-control" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label col-sm-4" for="AccountDescription">Account Description</label>
+                <div class="col-sm-8">
+                    <InputText @bind-Value="Account.AccountDescription" class="form-control" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label col-sm-4" for="AccountReferance">Referance number</label>
+                <div class="col-sm-8">
+                    <InputText @bind-Value="Account.AccountReferance" class="form-control" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label col-sm-4" for="AccountType">Account Type</label>
+                <div class="col-sm-8">
+
+                    <RadzenDropDown @bind-Value=Account.AccountType TValue="int" Data="@accountTypes"
+                                    TextProperty="Value" ValueProperty="Id" class="form-control" />
+                    <br />
+                </div>
+            </div>
+
+            <ValidationSummary />
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Submit</button>
+                <input type="button" Value="Cancle" @onclick="ClearForm" class="btn btn-danger" />
+            </div>
+
+        </EditForm>
+    </div>
+
+
+}
+
+
+
+@code {
+    [CascadingParameter]
+    public Account Account { get; set; }
+    private List<Common.DropdownItem> accountTypes = null;
+
+    [Parameter]
+    public EventCallback<bool> OnSaveSuccesEvent { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (accountTypes == null)
+        {
+            accountTypes = new List<Common.DropdownItem>();
+            foreach (var item in Enum.GetNames(typeof(Constants.AccountTypes)))
+            {
+                accountTypes.Add(new Common.DropdownItem
+                {
+                    Id = (int)Enum.Parse(typeof(Constants.AccountTypes), item),
+                    Value = item
+                });
+            }
+        }
+    }
+
+    void ClearForm()
+    {
+        Account = null;
+    }
+
+    async Task Save()
+    {
+        Account.IsActive = true;
+        var isSaved = AccountService.SaveAccount(Account);
+        if (isSaved)
+        {
+            await ShowNotification(new NotificationMessage() { Severity = NotificationSeverity.Success, Summary = "Success Summary", Detail = "Success Detail", Duration = 4000 });
+            await OnSaveSuccesEvent.InvokeAsync(true);
+        }
+
+    }
+
+    async Task ShowNotification(NotificationMessage message)
+    {
+        notificationService.Notify(message);
+        await InvokeAsync(() => { StateHasChanged(); });
+    }
+}

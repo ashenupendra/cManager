@@ -6,9 +6,9 @@ namespace cManager.Shared
 {
     public class Constants
     {
-        enum AccountTypes
+        public enum AccountTypes
         {
-            Assets = 1,
+            Assets,
             Liabilities,
             Equity,
             Revenue,

@@ -1,4 +1,5 @@
 ﻿using cManager.Shared.Accounting;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -9,7 +10,7 @@ namespace cManager.Data
 {
     public class AccountService
     {
-        private readonly ApplicationDbContext dBContext;
+        public readonly ApplicationDbContext dBContext;
 
         public AccountService(ApplicationDbContext dBContext)
         {

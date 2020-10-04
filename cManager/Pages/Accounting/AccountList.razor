@@ -3,43 +3,76 @@
 @using cManager.Data
 @using cManager.Shared.Accounting
 @inject AccountService AccountService
+@inject DialogService dialogService
 
-<h3>Account</h3>
+<h3>Account <RadzenButton Icon="add" Size="ButtonSize.Medium" Click="@(args => NewAccount())" ButtonStyle="ButtonStyle.Success"></RadzenButton></h3>
 
-@if (accountList == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Account Name</th>
-                <th>Account Type</th>
-                <th>Account Description</th>
-                <th>Account Ref.</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var acc in accountList)
-            {
-                <tr>
-                    <td>@acc.AccountName</td>
-                    <td>@acc.AccountType</td>
-                    <td>@acc.AccountDescription</td>
-                    <td>@acc.AccountReferance</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+<CascadingValue Value="accountSelected">
+    <EditAccount OnSaveSuccesEvent="LoadData"></EditAccount>
+</CascadingValue>
+
+<RadzenGrid AllowFiltering="false" FilterCaseSensitivity="FilterCaseSensitivity.Default" FilterMode="FilterMode.Simple" AllowPaging="true" PageSize="5"
+            AllowSorting="true" Data="@accountList" TItem="Account" ColumnWidth="200px">
+    <Columns>
+        <RadzenGridColumn TItem="Account" Property="AccountName" Title="Account" />
+        <RadzenGridColumn TItem="Account" Property="AccountTypeDescription" Title="Account type" />
+        <RadzenGridColumn TItem="Account" Property="AccountDescription" Title="Account description" />
+        <RadzenGridColumn TItem="Account" Property="AccountReferance" Title="Account description" />
+        <RadzenGridColumn TItem="Account" Context="AccountContext" Bubble="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Title="Options">
+            <Template Context="accountItem">
+                <RadzenButton Icon="edit" Size="ButtonSize.Medium" Click="@(args => EditRow(accountItem))">
+                </RadzenButton>
+                <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Medium" Click="@(args => ShowConfirmDialog("Delete Confirmation",$"Are you sure you want to delete this account? {accountItem.AccountName}", accountItem.Id))">
+                </RadzenButton>
+            </Template>
+        </RadzenGridColumn>
+    </Columns>
+</RadzenGrid>
+
+
 
 @code {
-    private List<Account> accountList;
+    private IQueryable<Account> accountList;
+    private Account accountSelected;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        accountList = await AccountService.GetAccounts();
+        LoadData();
     }
+
+    private Task LoadData()
+    {
+        accountList = AccountService.dBContext.Accounts;
+        accountSelected = null;
+        return Task.CompletedTask;
+    }
+
+    void NewAccount()
+    {
+        accountSelected = new Account();
+    }
+
+    protected void EditRow(Account account)
+    {
+        accountSelected = account;
+    }
+
+    protected void DeleteRow(int accountId)
+    {
+        AccountService.DeleteAccount(accountId);
+        dialogService.Close(true);
+    }
+
+    void ShowConfirmDialog(string title, string message, int id) => dialogService.Open(title, ds =>
+    @<RadzenCard Style="padding: 20px;">
+        <p Style="margin-bottom: 10px;">@message</p>
+        <div class="row">
+            <div class="col-md-12">
+                <RadzenButton Text="Ok" Click="()=> DeleteRow(id)" Style="margin-bottom: 10px; width: 150px" />
+                <RadzenButton Text="Cancel" Click="()=> ds.Close(false)" ButtonStyle="ButtonStyle.Secondary" Style="margin-bottom: 10px; width: 150px" />
+            </div>
+        </div>
+    </RadzenCard>);
+
+
 }

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
+using static cManager.Shared.Constants;
 
 namespace cManager.Shared.Accounting
 {
@@ -14,6 +16,15 @@ namespace cManager.Shared.Accounting
 
         [Required]
         public int AccountType { get; set; }
+
+        [NotMapped]
+        public string AccountTypeDescription
+        {
+            get
+            {
+                return ((AccountTypes)AccountType).ToString();
+            }
+        }
 
         [StringLength(300)]
         public string AccountDescription { get; set; }
