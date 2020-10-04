@@ -1,0 +1,45 @@
+﻿@page "/Accounting/Account"
+
+@using cManager.Data
+@using cManager.Shared.Accounting
+@inject AccountService AccountService
+
+<h3>Account</h3>
+
+@if (accountList == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Account Name</th>
+                <th>Account Type</th>
+                <th>Account Description</th>
+                <th>Account Ref.</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var acc in accountList)
+            {
+                <tr>
+                    <td>@acc.AccountName</td>
+                    <td>@acc.AccountType</td>
+                    <td>@acc.AccountDescription</td>
+                    <td>@acc.AccountReferance</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Account> accountList;
+
+    protected override async Task OnInitializedAsync()
+    {
+        accountList = await AccountService.GetAccounts();
+    }
+}
